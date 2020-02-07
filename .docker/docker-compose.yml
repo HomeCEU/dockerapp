@@ -1,0 +1,41 @@
+version: "3.2"
+
+services:
+  app:
+    build:
+      context: './app/'
+      args:
+        HOST_UID: ${HOST_UID}
+        PHP_VERSION: ${PHP_VERSION}
+    ports:
+      - "8080:80"
+    environment:
+      - "DB_DSN=${DB_DSN}"
+      - "DB_HOST=${DB_HOST}"
+      - "DB_NAME=${DB_NAME}"
+      - "DB_USER=${DB_USER}"
+      - "DB_PASS=${DB_PASS}"
+      - "APP_ENV=${APP_ENV}"
+    volumes:
+      - ../app/:/var/www/html/
+      - ../log/app/apache2/:/var/log/apache2/
+    depends_on:
+      - app-db
+    container_name: app
+
+  app-db:
+    image: mysql:${MYSQL_VERSION:-latest}
+    environment:
+      - "MYSQL_ROOT_PASSWORD=${DB_ROOT_PASS}"
+      - "MYSQL_DATABASE=${DB_NAME}"
+      - "MYSQL_USER=${DB_USER}"
+      - "MYSQL_PASSWORD=${DB_PASS}"
+    volumes:
+      - app-data:/var/lib/mysql
+    ports:
+      - "33061:3306"
+    command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
+    container_name: app-db
+
+volumes:
+    app-data:
