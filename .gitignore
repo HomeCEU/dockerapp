@@ -1,5 +1,4 @@
-.env
-app/vendor
-log/app/
-app/
-config
+/.docker/.env
+/log/app/
+/app/
+/config
