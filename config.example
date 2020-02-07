@@ -1,0 +1,5 @@
+APP_DIR=app
+APP_CONTAINER=app
+GIT_REPO=https://github.com/gothinkster/slim-php-realworld-example-app.git
+GIT_BRANCH=master
+DOCKER_CONF=.docker/.env

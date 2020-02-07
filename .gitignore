@@ -1,3 +1,5 @@
 .env
 app/vendor
-log/
+log/app/
+app/
+config

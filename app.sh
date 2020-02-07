@@ -3,6 +3,7 @@ function define_global_vars() {
   CONFIG_FILE="config"
   DIR=$(pwd)
   DOCKER_DIR=.docker
+  DOCKER_CONF="$(config_get DOCKER_CONF)"
   APP_DIR="$(config_get APP_DIR)"
   APP_CONTAINER="$(config_get APP_CONTAINER)"
   HOST_UID=$(id -u);
@@ -44,9 +45,11 @@ function Init() {
   if [ ! -d "${APP_DIR}" ]; then
     git clone --branch $(config_get GIT_BRANCH) $(config_get GIT_REPO) ${APP_DIR}
   fi
+  cpExampleFiles ${DIR}
   cpExampleFiles ${APP_DIR}
   cpExampleFiles ${DOCKER_DIR}
-  config_set "${DOCKER_DIR}"/.env HOST_UID ${HOST_UID}
+  config_set "${DOCKER_CONF}"/.env HOST_UID ${HOST_UID}
+  config_set "${DOCKER_CONF}" APP_CONTAINER ${APP_CONTAINER}
   Composer install
 }
 
@@ -69,6 +72,21 @@ function route() {
       ;;
     exec)
       Exec "${@:2}"
+      ;;
+    config)
+      Config "${@:2}"
+      ;;
+  esac
+}
+
+function Config() {
+  case $1 in
+    set)
+      config_set ${CONFIG_FILE} "${@:2}"
+      grep -B 4 -A 2 --color "$2" ${CONFIG_FILE}
+      ;;
+    *)
+      cat ${CONFIG_FILE}
       ;;
   esac
 }
@@ -103,7 +121,11 @@ function config_set() {
 
   # create file if not exists
   if [ ! -e "${file}" ] ; then
-    touch ${file}
+    if [ -e "${file}.example" ]; then
+      cp ${file}.example ${file};
+    else
+      touch ${file}
+    fi
   fi
 
   # create key if not exists

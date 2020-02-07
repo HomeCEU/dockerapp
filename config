@@ -2,3 +2,4 @@ APP_DIR=app
 APP_CONTAINER=app
 GIT_REPO=git@github.com:HomeCEU/DocumentCreator.git
 GIT_BRANCH=master
+DOCKER_CONF=.docker/.env
