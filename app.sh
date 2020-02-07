@@ -30,35 +30,6 @@ EOF
   exit 0;
 }
 
-function Composer() {
-  local cmd=$1;
-  local args="${@:2} --ignore-platform-reqs";
-  if [ ${cmd} = "install" ]; then
-    args="${args} --no-suggest --prefer-dist";
-  fi
-  echo "composer ${cmd} ${args}";
-  echo "docker run --rm -v \"${DIR}/${APP_DIR}\":/app --user ${HOST_UID}:${HOST_GID} composer:1.8 $cmd $args"
-  docker run --rm -v "${DIR}/${APP_DIR}":/app --user ${HOST_UID}:${HOST_GID} composer:1.8 $cmd $args
-}
-
-function Init() {
-  if [ ! -d "${APP_DIR}" ]; then
-    git clone --branch $(config_get GIT_BRANCH) $(config_get GIT_REPO) ${APP_DIR}
-  fi
-  cpExampleFiles ${DIR}
-  cpExampleFiles ${APP_DIR}
-  cpExampleFiles ${DOCKER_DIR}
-  config_set "${DOCKER_CONF}"/.env HOST_UID ${HOST_UID}
-  config_set "${DOCKER_CONF}" APP_CONTAINER ${APP_CONTAINER}
-  Composer install
-}
-
-
-function Exec() {
-  # echo "docker exec --user ${HOST_UID}:${HOST_GID} ${APP_CONTAINER} sh -c \"cd /var/www/html/ && ${@:1}\""
-  docker exec --user ${HOST_UID}:${HOST_GID} ${APP_CONTAINER} sh -c "cd /var/www/html/ && ${@:1}";
-}
-
 function route() {
   case $1 in
     -h|--help|help)
@@ -77,6 +48,37 @@ function route() {
       Config "${@:2}"
       ;;
   esac
+}
+
+function Composer() {
+  local cmd=$1;
+  local args="${@:2} --ignore-platform-reqs";
+  if [ ${cmd} = "install" ]; then
+    args="${args} --no-suggest --prefer-dist";
+  fi
+  echo "composer ${cmd} ${args}";
+  echo "docker run --rm -v \"${DIR}/${APP_DIR}\":/app --user ${HOST_UID}:${HOST_GID} composer:1.8 $cmd $args"
+  docker run --rm -v "${DIR}/${APP_DIR}":/app --user ${HOST_UID}:${HOST_GID} composer:1.8 $cmd $args
+}
+
+function Init() {
+  if [ ! -d "${APP_DIR}" ]; then
+    git clone --branch $(config_get GIT_BRANCH) $(config_get GIT_REPO) ${APP_DIR}
+  fi
+
+  cpExampleFiles .
+  cpExampleFiles ${APP_DIR}
+  cpExampleFiles ${DOCKER_DIR}
+  config_set "${DOCKER_CONF}" HOST_UID ${HOST_UID}
+  config_set "${DOCKER_CONF}" APP_CONTAINER ${APP_CONTAINER}
+  config_set "${DOCKER_CONF}" APP_PORT $(config_get APP_PORT)
+  Composer install
+}
+
+
+function Exec() {
+  # echo "docker exec --user ${HOST_UID}:${HOST_GID} ${APP_CONTAINER} sh -c \"cd /var/www/html/ && ${@:1}\""
+  docker exec --user ${HOST_UID}:${HOST_GID} ${APP_CONTAINER} sh -c "cd /var/www/html/ && ${@:1}";
 }
 
 function Config() {
@@ -123,11 +125,11 @@ function config_set() {
 
   # create key if not exists
   if ! grep -q "^${key}=" ${file}; then
+    # insert a newline just in case the file does not end with one
     printf "\n${key}=" >> ${file}
   fi
 
-  # set key
-  sed -i "s/\(^${key} *= *\).*/\1${val}/" ${DIR}/${file}
+  chc "$file" "$key" "$val"
 }
 
 function ensureConfigFileExists() {
@@ -140,10 +142,8 @@ function ensureConfigFileExists() {
   fi
 }
 
-# https://stackoverflow.com/a/25749716/2683059
-function file_ends_with_newline() {
-  [[ $(tail -c1 "$1" | wc -l) -gt 0 ]]
-}
+# thanks to ixz in #bash on irc.freenode.net
+function chc() { awk -v OFS== -v FS== -e 'BEGIN { ARGC = 1 } $1 == ARGV[2] { print ARGV[4] ? ARGV[4] : $1, ARGV[3]; next } 1' "$@" <"$1" >"$1.1"; mv "$1"{.1,}; }
 
 # https://unix.stackexchange.com/a/331965/312709
 # Usage: local myvar="$(config_get myvar)"

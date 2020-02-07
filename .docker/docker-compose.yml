@@ -8,9 +8,8 @@ services:
         HOST_UID: ${HOST_UID}
         PHP_VERSION: ${PHP_VERSION}
     ports:
-      - "8080:80"
+      - "${APP_PORT}:80"
     environment:
-      - "DB_DSN=${DB_DSN}"
       - "DB_HOST=${DB_HOST}"
       - "DB_NAME=${DB_NAME}"
       - "DB_USER=${DB_USER}"
@@ -21,7 +20,7 @@ services:
       - ../log/app/apache2/:/var/log/apache2/
     depends_on:
       - app-db
-    container_name: app
+    container_name: ${APP_CONTAINER}
 
   app-db:
     image: mysql:${MYSQL_VERSION:-latest}
@@ -35,7 +34,7 @@ services:
     ports:
       - "33061:3306"
     command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
-    container_name: app-db
+    container_name: ${APP_CONTAINER}-db
 
 volumes:
     app-data:
