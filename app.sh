@@ -119,22 +119,30 @@ function config_set() {
   local key=$2
   local val=${@:3}
 
-  # create file if not exists
-  if [ ! -e "${file}" ] ; then
-    if [ -e "${file}.example" ]; then
-      cp ${file}.example ${file};
-    else
-      touch ${file}
-    fi
-  fi
+  ensureConfigFileExists "${file}"
 
   # create key if not exists
   if ! grep -q "^${key}=" ${file}; then
-    echo "${key}=" >> ${file}
+    printf "\n${key}=" >> ${file}
   fi
 
   # set key
   sed -i "s/\(^${key} *= *\).*/\1${val}/" ${DIR}/${file}
+}
+
+function ensureConfigFileExists() {
+  if [ ! -e "$1" ] ; then
+    if [ -e "$1.example" ]; then
+      cp "$1.example" "$1";
+    else
+      touch "$1"
+    fi
+  fi
+}
+
+# https://stackoverflow.com/a/25749716/2683059
+function file_ends_with_newline() {
+  [[ $(tail -c1 "$1" | wc -l) -gt 0 ]]
 }
 
 # https://unix.stackexchange.com/a/331965/312709
