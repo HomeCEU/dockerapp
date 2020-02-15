@@ -12,6 +12,7 @@ COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr
 
 # https://stackoverflow.com/a/58694421/2683059
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
+ENV PATH "$PATH:/var/www/html/vendor/bin"
 
 COPY site.conf /etc/apache2/sites-enabled/
 

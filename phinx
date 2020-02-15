@@ -1,0 +1,2 @@
+#!/bin/bash
+./app.sh exec vendor/bin/phinx $1 $2 $3

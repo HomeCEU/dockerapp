@@ -42,7 +42,7 @@ function route() {
       Init
       ;;
     exec)
-      Exec "${@:2}"
+      Exec ${@:2}
       ;;
     config)
       Config "${@:2}"
@@ -77,8 +77,7 @@ function Init() {
 
 
 function Exec() {
-  # echo "docker exec --user ${HOST_UID}:${HOST_GID} ${APP_CONTAINER} sh -c \"cd /var/www/html/ && ${@:1}\""
-  docker exec --user ${HOST_UID}:${HOST_GID} ${APP_CONTAINER} sh -c "cd /var/www/html/ && ${@:1}";
+  docker exec --user ${HOST_UID}:${HOST_GID} ${APP_CONTAINER} sh -c "cd /var/www/html/ && $*";
 }
 
 function Config() {
