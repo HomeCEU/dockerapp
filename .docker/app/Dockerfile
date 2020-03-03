@@ -31,7 +31,16 @@ RUN apt clean -y \
         sudo \
         vim \
         wget \
-        wkhtmltopdf \
+        # packages required to generate pdf
+        xauth \
+        xvfb \
+        openssl \
+        build-essential \
+        xorg \
+        libssl-dev \
+        && wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.4/wkhtmltox-0.12.4_linux-generic-amd64.tar.xz \
+        && tar xvJf wkhtmltox-0.12.4_linux-generic-amd64.tar.xz \
+        && cp wkhtmltox/bin/wkhtmlto* /usr/bin/ \
     # Apache
     && a2enmod rewrite \
     && a2enmod headers \
