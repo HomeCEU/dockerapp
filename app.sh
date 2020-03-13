@@ -47,7 +47,61 @@ function route() {
     config)
       Config "${@:2}"
       ;;
+    build-image)
+      BuildImage $2
+      ;;
+    test-image)
+      TestImage $2
+      ;;
   esac
+}
+
+function BuildImage() {
+  local TAG=$1 # vendor/project:tag
+
+  docker build -t ${TAG} -f .docker/app/deployable.Dockerfile .
+}
+
+function TestImage() {
+  local TAG=${1:-testapp} # vendor/project:tag
+  local DB_ROOT_PASS="$(env_get DB_ROOT_PASS)"
+  local DB_NAME="$(env_get DB_NAME)"
+  local DB_USER="$(env_get DB_USER)"
+  local DB_PASS="$(env_get DB_PASS)"
+  local DB_PORT="33061"
+  local DB_HOST="$(env_get DB_HOST)"
+  local APP_HOST="$(config_get APP_CONTAINER)"
+  local APP_ENV="$(env_get APP_ENV)"
+  local APP_PORT="$(config_get APP_PORT)"
+  local DOCKER_NETWORK="dts-network"
+
+  # create network if not exists
+  docker network inspect ${DOCKER_NETWORK} >/dev/null 2>&1 || \
+    docker network create --driver bridge ${DOCKER_NETWORK}
+
+  # run mysql container
+  docker run --rm --name ${DB_HOST} \
+    --network ${DOCKER_NETWORK} \
+    -p ${DB_PORT}:3306 \
+    -e MYSQL_ROOT_PASSWORD=${DB_ROOT_PASS} \
+    -e MYSQL_DATABASE=${DB_NAME} \
+    -e MYSQL_USER=${DB_USER} \
+    -e MYSQL_PASSWORD=${DB_PASS} \
+    -d mysql:5.7
+
+  # docker build -t ${TAG} \
+  #   --file ./.docker/Dockerfile.deployed
+
+  # run app container
+  docker run --rm --name ${APP_HOST} \
+    --network ${DOCKER_NETWORK} \
+    -p ${APP_PORT}:80 \
+    -e DB_HOST=${DB_HOST} \
+    -e DB_NAME=${DB_NAME} \
+    -e DB_USER=${DB_USER} \
+    -e DB_PASS=${DB_PASS} \
+    -e APP_ENV=${APP_ENV} \
+    -d ${TAG}
 }
 
 function Composer() {
@@ -150,6 +204,17 @@ function config_get() {
     val="$(config_read_file ${CONFIG_FILE} "${1}")";
     if [ "${val}" = "__UNDEFINED__" ]; then
         val="$(config_read_file ${CONFIG_FILE}.example "${1}")";
+    fi
+    printf -- "%s" "${val}";
+}
+
+# https://unix.stackexchange.com/a/331965/312709
+# Usage: local myvar="$(config_get myvar)"
+function env_get() {
+    local file=".docker/.env"
+    val="$(config_read_file ${file} "${1}")";
+    if [ "${val}" = "__UNDEFINED__" ]; then
+        val="$(config_read_file ${file}.example "${1}")";
     fi
     printf -- "%s" "${val}";
 }

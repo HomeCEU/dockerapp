@@ -1,0 +1,13 @@
+
+**/*.cache
+**/*.env
+**/*.log
+**/README.md
+app/.build
+app/.git
+app/.travis.yml
+app/.scrutinizer.yml
+app/.gitignore
+app/vendor
+app/phpunit.xml
+app/tests
