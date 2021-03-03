@@ -111,8 +111,8 @@ function Composer() {
     args="${args} --no-suggest --prefer-dist";
   fi
   echo "composer ${cmd} ${args}";
-  echo "docker run --rm -v \"${DIR}/${APP_DIR}\":/app --user ${HOST_UID}:${HOST_GID} composer:1.8 $cmd $args"
-  docker run --rm -v "${DIR}/${APP_DIR}":/app --user ${HOST_UID}:${HOST_GID} composer:1.8 $cmd $args
+  echo "docker run --rm -v \"${DIR}/${APP_DIR}\":/app --user ${HOST_UID}:${HOST_GID} composer $cmd $args"
+  docker run --rm -v "${DIR}/${APP_DIR}":/app --user ${HOST_UID}:${HOST_GID} composer $cmd $args
 }
 
 function Init() {
