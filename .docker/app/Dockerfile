@@ -1,6 +1,4 @@
-ARG PHP_VERSION=7.3
-
-FROM php:${PHP_VERSION}-apache-stretch 
+FROM php:7.4.15-apache-buster
 
 # ARG's above FROM are reset after FROM
 ARG HOST_UID=1000
@@ -27,7 +25,7 @@ RUN apt clean -y \
         memcached \
     # mysql-client stops working in debian 10
     # use default-mysql-client instead if you upgrade
-        mysql-client \ 
+        default-mysql-client \ 
         sudo \
         vim \
         wget \
@@ -37,7 +35,7 @@ RUN apt clean -y \
         openssl \
         build-essential \
         xorg \
-        libssl1.0-dev \
+        libssl1.1 \
         && wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.4/wkhtmltox-0.12.4_linux-generic-amd64.tar.xz \
         && tar xvJf wkhtmltox-0.12.4_linux-generic-amd64.tar.xz \
         && cp wkhtmltox/bin/wkhtmlto* /usr/bin/ \
